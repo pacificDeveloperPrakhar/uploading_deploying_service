@@ -2,6 +2,7 @@ const { exec } = require("child_process");
 const generateRandomId=require('../utils/generateRandomId');
 const { resolve } = require("path");
 const { stderr, stdout } = require("process");
+const executeBash = require("../utils/executeBash");
 // Middleware function
 module.exports.processGitURL = async function (req, res, next) {
   const { url } = req.body;
@@ -44,5 +45,21 @@ module.exports.cloneGit= async function(req,res,next){
     id,
     mssg:`successfully cloned the ${req.url} on server`
 }
+ )
+}
+
+module.exports.processAllFileList=async function(req,res,next){
+ const {id}=req.query
+ const {error,stdout,stderr}=await executeBash(`find /home/prakhar/Desktop/uploading_deploying_service/output/${id} -type f ! -path "*/.*/*"`)
+ if(error){
+ return res.status(400).json({
+    status:"error",
+    mssg:stderr,
+    errStack:error
+  })
+ }
+ const files_list=stdout.split("\n");
+ res.status(200).json(
+  files_list
  )
 }

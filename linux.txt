@@ -1,1 +1,9 @@
 sudo docker run -d --name redis-stack-server -p 6379:6379 redis/redis-stack-server:latest
+
+to list all the files in the directory and its subfolder -type f tells to fetch only files
+ 
+find /home/prakhar/Desktop/uploading_deploying_service/output/${id} -type f
+
+to list all files excluding the hidden folder
+
+find /home/prakhar/Desktop/uploading_deploying_service/output/${id} -type f ! -path "*/.*/*"
