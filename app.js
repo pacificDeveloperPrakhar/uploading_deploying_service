@@ -9,22 +9,17 @@ app.use(Express.json({ limit: "30kb" }));
 //acces the git ,verify it,clone it
 app.route("/get_repo").post(catchAsync(processGitURL), catchAsync(cloneGit))
 //get all the files in the repo
-app.route("/get_repo_files").post(processAllFileList,async(req,res,next)=>{
- const result=await Promise.all( req.files_list.map(async(file) => {
-  return await uploadS3(file.key,file.filePath)
- }));
- console.log(result)
- res.status(200).json(result)
+app.route("/track").post(processAllFileList,async(req,res,next)=>{
+ res.status(200).json(req.files_list)
 })
-// errorMiddleware.js
-app.route("/exec_bash").post((req,res,next)=>{
-  const {query}=req.body;
-  const {stdout}=executeBash(query);
-  res.status(200).send(stdout)
-})
-app.route("/upload_file").post((req,res)=>{
-
-})
+// deploy the github repo using the id provide in the query
+app.route("/deploy").post(processAllFileList,async(req,res,next)=>{
+  const result=await Promise.all( req.files_list.map(async(file) => {
+   return await uploadS3(file.key,file.filePath)
+  }));
+  console.log(result)
+  res.status(200).json(result)
+ })
 app.use(function errorHandler(err, req, res, next) {
     console.error(err.stack); 
   
