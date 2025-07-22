@@ -54,8 +54,18 @@ const uploadS3 = async (Key, localFilePath) => {
   }
 };
 
+async function listAllFilesOnCloud(id){
+  const listCommands=new ListObjectsV2Command({
+    Bucket:process.env.AWS_BUCKET_NAME,
+    prefix:id
+  })
+  const data=await client.send(listCommands)
+  return data
+}
+
 module.exports = {
   uploadS3,
   putObjectCommand,
   getObjectUrl,
+  listAllFilesOnCloud
 };

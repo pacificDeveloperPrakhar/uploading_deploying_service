@@ -4,7 +4,8 @@ const { resolve } = require("path");
 const { stderr, stdout } = require("process");
 const executeBash = require("../utils/executeBash");
 const path = require("path");
-const mime=require("mime-types")
+const mime=require("mime-types");
+const { listAllFilesOnCloud } = require("./fileControllers");
 // Middleware function
 module.exports.processGitURL = async function (req, res, next) {
   const { url } = req.body;
@@ -77,4 +78,11 @@ console.log(files_list)
 
 req.files_list=data
 next()
+}
+
+module.exports.getAllFilesOnCloud=async function(req,res,next){
+  const {id}=req.query
+  const data =await listAllFilesOnCloud(id)
+  res.status(200).json(data)
+
 }
