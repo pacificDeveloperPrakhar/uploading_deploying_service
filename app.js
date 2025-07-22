@@ -2,14 +2,29 @@ const Express = require("express");
 const app = Express();
 const generateRandomId = require("./utils/generateRandomId");
 const catchAsync=require("./utils/catchAsync");
-const {processGitURL,cloneGit, processAllFileList}=require("./controllers/gitProcessController")
+const {processGitURL,cloneGit, processAllFileList}=require("./controllers/gitProcessController");
+const executeBash = require("./utils/executeBash");
+const {uploadS3}=require("./controllers/fileControllers")
 app.use(Express.json({ limit: "30kb" }));
 //acces the git ,verify it,clone it
 app.route("/get_repo").post(catchAsync(processGitURL), catchAsync(cloneGit))
 //get all the files in the repo
-app.route("/get_repo_files").post(processAllFileList)
+app.route("/get_repo_files").post(processAllFileList,async(req,res,next)=>{
+ const result=await Promise.all( req.files_list.map(async(file) => {
+  return await uploadS3(file.key,file.filePath)
+ }));
+ console.log(result)
+ res.status(200).json(result)
+})
 // errorMiddleware.js
+app.route("/exec_bash").post((req,res,next)=>{
+  const {query}=req.body;
+  const {stdout}=executeBash(query);
+  res.status(200).send(stdout)
+})
+app.route("/upload_file").post((req,res)=>{
 
+})
 app.use(function errorHandler(err, req, res, next) {
     console.error(err.stack); 
   

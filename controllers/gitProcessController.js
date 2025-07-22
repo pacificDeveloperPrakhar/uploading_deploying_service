@@ -3,6 +3,8 @@ const generateRandomId=require('../utils/generateRandomId');
 const { resolve } = require("path");
 const { stderr, stdout } = require("process");
 const executeBash = require("../utils/executeBash");
+const path = require("path");
+const mime=require("mime-types")
 // Middleware function
 module.exports.processGitURL = async function (req, res, next) {
   const { url } = req.body;
@@ -59,7 +61,20 @@ module.exports.processAllFileList=async function(req,res,next){
   })
  }
  const files_list=stdout.split("\n");
- res.status(200).json(
-  files_list
- )
+  console.log(files_list[1].split(process.env.output_path_relative)[1]);
+  const data=files_list.filter((file)=>file!="").map(absPath => {
+    const contentType= mime.lookup(absPath)||undefined
+    const filePath=absPath;
+    const fileName=path.basename(absPath)
+    return {
+      filePath,
+      key:filePath.split(process.env.clone_output_path)[1],
+      fileName,
+      contentType
+    }
+  });;
+console.log(files_list)
+
+req.files_list=data
+next()
 }
