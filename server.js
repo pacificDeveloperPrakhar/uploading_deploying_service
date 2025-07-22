@@ -7,6 +7,7 @@ const app = require("./app.js");
 const server = http.createServer(app);
 const host = process.env.host;
 const port = process.env.port;
+const redisClient=require("./redisConnect.js")
 const {colorBright,colorFgCyan,colorRed,colorReset,colorPurple, colorFgGreen}=require("./color_codes.js")
 
 console.log(`${colorFgCyan}mode:${colorReset} ${colorBright}${colorPurple}${process.env.mode}${colorReset}`);
@@ -27,7 +28,7 @@ process.on("uncaughtException", (err) => {
 
 
 
-server.listen(port, host, (err) => {
+  server.listen(port, host, (err) => {
   if (err) {
     console.error(`Error starting the server: ${err}`);
   } else {
