@@ -2,7 +2,10 @@ const dotenv = require("dotenv");
 dotenv.config({ path: "../config.env" });
 const client=require("../redisConnect")
 const path=require("path")
+const fs=require("fs")
 const executeBash=require("../utils/executeBash")
+const {fetchFileFromAWSUsingStream}=require("../controllers/fileControllers")
+const {listAllFilesOnCloud}=require("../controllers/fileControllers")
 async function main(){
 
     while(true){
@@ -11,16 +14,34 @@ async function main(){
             {
                 // now pop the value that has been inserted into the queue
                 const projectId=await client.lPop(process.env.queue)
+                //first fetch all the files corresponding to that id
+                const data=await listAllFilesOnCloud(projectId)
+                // now get the key of all the files
+                const keys=data.Contents.map((file)=>{
+                  
+                  return file.Key
+                })
+                //before downloading all the files create the directory
+                await executeBash(`mkdir ${path.join(process.env.build_output_path,projectId)}`)
+                //now download all the files from the cloud to the build project
+                await Promise.all(keys.map(async (key)=>{
+                  // before creating the stream and writing to it we need to maully create the file using the bash
+                  const filePath=path.join(process.env.build_output_path,key);
+                  await executeBash(`touch ${filePath}`)
+                  return  fetchFileFromAWSUsingStream(key,fs.createReadStream(filePath)).catch((err)=>{
+                    throw err
+                  })
+                }))
+                //build the project by first going into the folder then running the npm run build
                 await buildReactProject(projectId)
             }
         }
     }
     main()
-    //fetching the files form the aws s3 bucket
 
-    // this functin will build the projects
+    // this functin will build the projects by running th git in console
     async function buildReactProject(id) {
-      const projectPath = path.join(process.env.clone_output_path, id);
+      const projectPath = path.join(process.env.build_output_path, id);
     
       try {
         const { error, stdout, stderr } = await executeBash(`

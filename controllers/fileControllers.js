@@ -1,7 +1,11 @@
-const {S3Client,GetObjectCommand,PutObjectCommand,ListObjectsV2Command}=require("@aws-sdk/client-s3")
+const {S3Client,PutObjectCommand,ListObjectsV2Command,GetObjectCommand}=require("@aws-sdk/client-s3")
 const {getSignedUrl}=require("@aws-sdk/s3-request-presigner")
 const multer=require("multer")
 const path = require('path');
+const { pipeline } = require("stream");
+const { Upload } = require('@aws-sdk/lib-storage');
+const fs = require('fs');
+
 // creating the client object
 const client=new S3Client({
     region:"ap-south-1",
@@ -26,8 +30,6 @@ const putObjectCommand=async function putObjectCommand({filepath,filename,conten
 
 
 
-const { Upload } = require('@aws-sdk/lib-storage');
-const fs = require('fs');
 
 const uploadS3 = async (Key, localFilePath) => {
   try {
@@ -62,10 +64,40 @@ async function listAllFilesOnCloud(id){
   const data=await client.send(listCommands)
   return data
 }
+// this controller will stream the data from the aws to the given ouotput wether its system disk or to reponse to client
+async function fetchFileFromAWSUsingStream(file, dest) {
+  try {
+    const cmd = new GetObjectCommand({
+      Bucket: process.env.AWS_BUCKET_NAME,
+      Key: file, // assuming 'file' is the key
+    });
 
+    const response = await client.send(cmd);
+    const S3stream = response.Body;
+
+    // Pipe S3 stream to the destination stream
+    await pipe(S3stream, dest);
+    console.log('✅ File streamed successfully from S3');
+  } catch (err) {
+    console.error('❌ Error while streaming file from S3:', err.message);
+ 
+    throw err;
+  }
+}
+//converting the asynchronous function pipline to promise based
+async function pipe(srcSream,destStream){
+  await new Promise((resolve,reject)=>{
+    pipeline(srcSream,destStream,(err)=>{
+      if(err)
+      return  reject(err)
+      return resolve(true)
+    })
+  })
+}
 module.exports = {
   uploadS3,
   putObjectCommand,
   getObjectUrl,
-  listAllFilesOnCloud
+  listAllFilesOnCloud,
+  fetchFileFromAWSUsingStream
 };

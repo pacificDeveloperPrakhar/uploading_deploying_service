@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "this is a node startr kit file for the quick set up for the any sort of server side code",
   "main": "server.js",
+  "type": "commonjs",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": " npx nodemon server.js"
