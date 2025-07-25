@@ -1,8 +1,7 @@
 const { exec } = require("child_process");
 const generateRandomId=require('../utils/generateRandomId');
-const { resolve } = require("path");
-const { stderr, stdout } = require("process");
 const executeBash = require("../utils/executeBash");
+const removeNodeModules=require('../utils/removeNodeModules')
 const path = require("path");
 const mime=require("mime-types");
 const { listAllFilesOnCloud } = require("./fileControllers");
@@ -43,6 +42,7 @@ module.exports.cloneGit= async function(req,res,next){
         })
     }
     const data=await clone_git(req.url)
+    await removeNodeModules(id)
  res.status(201).send(
 {
     id,
