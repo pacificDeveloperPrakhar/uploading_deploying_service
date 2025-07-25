@@ -27,7 +27,7 @@ app.route("/deploy").post(processAllFileList,async(req,res,next)=>{
 app.use("/redis",(req,res,next)=>{
   client.lPush("vercelCloneQueue","my data")
 })
-//get all the files uploaded in the cloned repo folder
+//get all the files on the cloud after uploading
 app.use("/get_uploaded_files",getAllFilesOnCloud)
 //this is the error handling middleware
 // =================================================================

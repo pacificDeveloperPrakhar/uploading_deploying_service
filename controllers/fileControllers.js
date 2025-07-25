@@ -79,6 +79,7 @@ async function fetchFileFromAWSUsingStream(file, dest) {
     await pipe(S3stream, dest);
     console.log('✅ File streamed successfully from S3');
   } catch (err) {
+    console.log(file)
     console.error('❌ Error while streaming file from S3:', err.message);
  
     throw err;

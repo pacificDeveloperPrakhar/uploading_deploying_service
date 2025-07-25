@@ -21,14 +21,14 @@ async function main(){
                   
                   return file.Key
                 })
-                //before downloading all the files create the directory
-                await executeBash(`mkdir ${path.join(process.env.build_output_path,projectId)}`)
                 //now download all the files from the cloud to the build project
                 await Promise.all(keys.map(async (key)=>{
-                  // before creating the stream and writing to it we need to maully create the file using the bash
+                  // first create the folder
+                  await executeBash(`mkdir -p ${path.join(process.env.build_output_path,path.dirname(key))}`)
+                  // before creating the stream and writing to it we need to manully create the file using the bash
                   const filePath=path.join(process.env.build_output_path,key);
                   await executeBash(`touch ${filePath}`)
-                  return  fetchFileFromAWSUsingStream(key,fs.createReadStream(filePath)).catch((err)=>{
+                  return  fetchFileFromAWSUsingStream(key,fs.createWriteStream(filePath)).catch((err)=>{
                     throw err
                   })
                 }))
